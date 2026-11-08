@@ -1,0 +1,26 @@
+- name: Preparation du serveur Web
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Mise a jour des paquets
+      apt:
+        update_cache: yes
+
+    - name: Mise a jour du systeme
+      apt:
+        upgrade: dist
+        update_cache: yes
+
+    - name: Installation des outils
+      apt:
+        name:
+          - curl
+          - wget
+          - git
+          - unzip
+        state: present
+
+    - name: Verification de Python
+      command: python3 --version
+      changed_when: false
