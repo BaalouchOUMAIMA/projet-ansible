@@ -1,0 +1,39 @@
+
+name: Ansible CI/CD
+
+on:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches: ["develop"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Test Ansible Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Check Ansible
+        run: ansible --version
+
+      - name: Check inventory
+        run: ansible-inventory -i inventory/inventory.ini --list
+
+      - name: Check playbook syntax
+        run: |
+          ansible-playbook \
+            -i inventory/inventory.ini \
+            playbooks/03-deploy-website.yml \
+            --syntax-check
+
+      - name: Check website
+        run: test -f website/index.html
