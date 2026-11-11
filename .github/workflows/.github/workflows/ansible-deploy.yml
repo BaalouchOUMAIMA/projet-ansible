@@ -1,27 +1,37 @@
+
 name: Ansible CI/CD
 
 on:
   push:
     branches:
       - develop
-
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  deploy:
+    name: Deploy website with Ansible
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Ansible
-        run: |
-          sudo apt update
-          sudo apt install -y ansible
-
-      - name: Check Ansible
+      - name: Verify Ansible installation
         run: ansible --version
 
+      - name: Verify SSH connection
+        run: ansible webservers -i inventory/inventory.ini -m ping
+
       - name: Check playbook syntax
-        run: ansible-playbook --syntax-check playbooks/03-deploy-website.yml
+        run: |
+          ansible-playbook \
+            -i inventory/inventory.ini \
+            playbooks/03-deploy-website.yml \
+            --syntax-check
+
+      - name: Deploy website
+        run: |
+          ansible-playbook \
+            -i inventory/inventory.ini \
+            playbooks/03-deploy-website.yml \
+            --vault-password-file "$HOME/.vault_pass"
