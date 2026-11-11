@@ -1,0 +1,27 @@
+name: Ansible CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Check Ansible
+        run: ansible --version
+
+      - name: Check playbook syntax
+        run: ansible-playbook --syntax-check playbooks/03-deploy-website.yml
