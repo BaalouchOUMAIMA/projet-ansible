@@ -22,18 +22,34 @@ jobs:
           sudo apt update
           sudo apt install -y ansible
 
+      - name: Configure Vault password
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          if [ -z "$ANSIBLE_VAULT_PASSWORD" ]; then
+            echo "Vault password secret is missing"
+            exit 1
+          fi
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > "$RUNNER_TEMP/vault-pass"
+          chmod 600 "$RUNNER_TEMP/vault-pass"
+
       - name: Check Ansible
         run: ansible --version
 
       - name: Check inventory
-        run: ansible-inventory -i inventory/inventory.ini --list
+        run: |
+          ansible-inventory \
+            -i inventory/inventory.ini \
+            --list \
+            --vault-password-file "$RUNNER_TEMP/vault-pass"
 
       - name: Check playbook syntax
         run: |
           ansible-playbook \
             -i inventory/inventory.ini \
             playbooks/03-deploy-website.yml \
-            --syntax-check
+            --syntax-check \
+            --vault-password-file "$RUNNER_TEMP/vault-pass"
 
       - name: Check website
         run: test -f website/index.html
