@@ -1,0 +1,46 @@
+
+name: Ansible CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Nginx Website
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Ansible
+        run: ansible --version
+
+      - name: Verify inventory
+        run: ansible-inventory -i inventory/inventory.ini --list
+
+      - name: Test connection to web server
+        run: ansible webservers -i inventory/inventory.ini -m ping
+
+      - name: Check playbook syntax
+        run: |
+          ansible-playbook \
+            -i inventory/inventory.ini \
+            playbooks/03-deploy-website.yml \
+            --syntax-check \
+            --vault-password-file "$HOME/.vault_pass"
+
+      - name: Deploy website
+        run: |
+          ansible-playbook \
+            -i inventory/inventory.ini \
+            playbooks/03-deploy-website.yml \
+            --vault-password-file "$HOME/.vault_pass"
+
+      - name: Verify Nginx website
+        run: |
+          ansible webservers -i inventory/inventory.ini \
+            -m command -a "curl -I http://localhost"

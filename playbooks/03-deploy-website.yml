@@ -1,0 +1,19 @@
+
+- name: Deploiement du site Web
+  hosts: web-server
+  become: yes
+
+  tasks:
+    - name: Copier le site Web vers Nginx
+      copy:
+        src: /vagrant/website/
+        dest: /var/www/html/
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Demarrer Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
